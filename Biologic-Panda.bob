@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Saved on 2024-07-09 15:50:07 by aschultze1-->
+<display version="2.0.0">
+  <name>Display</name>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <pv_name>XF:31ID1-ES{BIOLOGIC}:EWE:LAST</pv_name>
+    <x>70</x>
+    <y>160</y>
+    <precision>6</precision>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Ewe</text>
+    <x>70</x>
+    <y>140</y>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>I</text>
+    <x>70</x>
+    <y>200</y>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_1</name>
+    <pv_name>XF:31ID1-ES{BIOLOGIC}:I:LAST</pv_name>
+    <x>70</x>
+    <y>220</y>
+    <precision>6</precision>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_2</name>
+    <pv_name>XF:31ID1-ES{BIOLOGIC}:CYCLE:NUM</pv_name>
+    <x>80</x>
+    <y>290</y>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>Cycle Num</text>
+    <x>80</x>
+    <y>270</y>
+  </widget>
+  <widget type="xyplot" version="3.0.0">
+    <name>X/Y Plot</name>
+    <x>320</x>
+    <y>150</y>
+    <width>1010</width>
+    <height>590</height>
+    <x_axis>
+      <title>X</title>
+      <autoscale>false</autoscale>
+      <log_scale>false</log_scale>
+      <minimum>-1.0</minimum>
+      <maximum>1.0</maximum>
+      <show_grid>false</show_grid>
+      <title_font>
+        <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+        </font>
+      </title_font>
+      <scale_font>
+        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+        </font>
+      </scale_font>
+      <visible>true</visible>
+    </x_axis>
+    <y_axes>
+      <y_axis>
+        <title>Y</title>
+        <autoscale>false</autoscale>
+        <log_scale>false</log_scale>
+        <minimum>-0.2</minimum>
+        <maximum>0.2</maximum>
+        <show_grid>false</show_grid>
+        <title_font>
+          <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+          </font>
+        </title_font>
+        <scale_font>
+          <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+          </font>
+        </scale_font>
+        <on_right>false</on_right>
+        <visible>true</visible>
+        <color>
+          <color name="Text" red="0" green="0" blue="0">
+          </color>
+        </color>
+      </y_axis>
+    </y_axes>
+    <traces>
+      <trace>
+        <name>$(traces[0].y_pv)</name>
+        <x_pv>XF:31ID1-ES{BIOLOGIC}:EWE</x_pv>
+        <y_pv>XF:31ID1-ES{BIOLOGIC}:I</y_pv>
+        <err_pv></err_pv>
+        <axis>0</axis>
+        <trace_type>1</trace_type>
+        <color>
+          <color red="0" green="0" blue="255">
+          </color>
+        </color>
+        <line_width>3</line_width>
+        <line_style>0</line_style>
+        <point_type>2</point_type>
+        <point_size>3</point_size>
+        <visible>true</visible>
+      </trace>
+    </traces>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_3</name>
+    <pv_name>XF:31ID1-ES{BIOLOGIC}:EXP:STATUS</pv_name>
+    <x>80</x>
+    <y>440</y>
+    <format>6</format>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>Exp Status</text>
+    <x>80</x>
+    <y>420</y>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>LED</name>
+    <pv_name>XF:31ID1-ES{PANDA:1}:BITS:A</pv_name>
+    <x>180</x>
+    <y>570</y>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button</name>
+    <actions>
+      <action type="write_pv">
+        <pv_name>XF:31ID1-ES{BIOLOGIC}:TRIG:OUT</pv_name>
+        <value>1</value>
+        <description>WritePV</description>
+      </action>
+    </actions>
+    <pv_name>XF:31ID1-ES{BIOLOGIC}:TRIG:OUT</pv_name>
+    <text>Start Cycle</text>
+    <x>70</x>
+    <y>560</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_1</name>
+    <pv_name>XF:31ID1-ES{BIOLOGIC}:FREQ:SET</pv_name>
+    <x>80</x>
+    <y>510</y>
+    <precision>2</precision>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>Frequency</text>
+    <x>80</x>
+    <y>470</y>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_6</name>
+    <pv_name>XF:31ID1-ES{BIOLOGIC}:FREQ</pv_name>
+    <x>80</x>
+    <y>490</y>
+    <precision>2</precision>
+  </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>Embedded Display</name>
+    <file>../panda/lab3-panda1/DATA.bob</file>
+    <x>120</x>
+    <y>780</y>
+    <width>510</width>
+    <height>500</height>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_2</name>
+    <pv_name>XF:31ID1-ES{BIOLOGIC}:EXP:NUM_CYCLES</pv_name>
+    <x>80</x>
+    <y>340</y>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>Total Cycles</text>
+    <x>80</x>
+    <y>320</y>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_7</name>
+    <pv_name>XF:31ID1-ES{BIOLOGIC}:CYCLE:STATUS</pv_name>
+    <x>80</x>
+    <y>400</y>
+    <format>6</format>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <text>Cycle Status</text>
+    <x>80</x>
+    <y>380</y>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_1</name>
+    <actions>
+      <action type="write_pv">
+        <pv_name>XF:31ID1-ES{BIOLOGIC}:RESET</pv_name>
+        <value>1</value>
+        <description>WritePV</description>
+      </action>
+    </actions>
+    <text>RESET</text>
+    <x>70</x>
+    <y>600</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+</display>
