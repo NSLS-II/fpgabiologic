@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from caproto.server import PVGroup, pvproperty, run
 from caproto.asyncio.client import Context
 import caproto as ca
@@ -35,17 +37,18 @@ class ScalerIOC(PVGroup):
 
     reset = pvproperty(value=0, name="RESET", doc="Reset IOC")
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, panda_prefix, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.panda_prefix = panda_prefix
     
     async def __ainit__(self, async_lib):
         print("Async init called they want their sink back")
 
         ctx = Context()
 
-        self.ttlout, self.clkPeriod, self.clkWidth, self.counterReset = await ctx.get_pvs("XF:31ID1-ES{PANDA:1}:BITS:A",
-                                                                       "XF:31ID1-ES{PANDA:1}:CLOCK1:PERIOD", "XF:31ID1-ES{PANDA:1}:CLOCK1:WIDTH",
-                                                                       "XF:31ID1-ES{PANDA:1}:BITS:B")
+        self.ttlout, self.clkPeriod, self.clkWidth, self.counterReset = await ctx.get_pvs(f"{self.panda_prefix}BITS:A",
+                                                                       f"{self.panda_prefix}CLOCK1:PERIOD", f"{self.panda_prefix}CLOCK1:WIDTH",
+                                                                       f"{self.panda_prefix}BITS:B")
         
         await self.cycleStatus.write("Idle")
         await self.expStatus.write("Idle")
@@ -54,18 +57,18 @@ class ScalerIOC(PVGroup):
 
         # what even is an async for loop what
         # this feels so detached from the original concept of a for loop
-        async for event, context, data in ctx.monitor("XF:31ID1-ES{PANDA:1}:CALC1:OUT", "XF:31ID1-ES{PANDA:1}:CALC2:OUT",
-                                                      "XF:31ID1-ES{PANDA:1}:TTLIN1:VAL", "XF:31ID1-ES{PANDA:1}:COUNTER1:OUT",
-                                                      "XF:31ID1-ES{PANDA:1}:CLOCK1:PERIOD"):
+        async for event, context, data in ctx.monitor(f"{self.panda_prefix}CALC1:OUT", f"{self.panda_prefix}CALC2:OUT",
+                                                      f"{self.panda_prefix}TTLIN1:VAL", f"{self.panda_prefix}COUNTER1:OUT",
+                                                      f"{self.panda_prefix}CLOCK1:PERIOD"):
             if event == "subscription":
-                if context.pv.name == "XF:31ID1-ES{PANDA:1}:CALC1:OUT": # ewe
+                if context.pv.name == f"{self.panda_prefix}CALC1:OUT": # ewe
 
                     self.eweValues.append(data.data[0] * PANDA_FMC_SCALE_VALUE)
                     await self.ewe.write(self.eweValues, timestamp=data.metadata.timestamp, status=data.metadata.status, 
                                         severity=data.metadata.severity)
                     await self.lastEWE.write(data.data[0] * PANDA_FMC_SCALE_VALUE, timestamp=data.metadata.timestamp, status=data.metadata.status, 
                                         severity=data.metadata.severity)
-                elif context.pv.name == "XF:31ID1-ES{PANDA:1}:CALC2:OUT": # I
+                elif context.pv.name == f"{self.panda_prefix}CALC2:OUT": # I
                     scaledValue = data.data[0] * PANDA_FMC_SCALE_VALUE * self.currentCurrentScale
                     if len(self.currentValues) > 1:
                         lastValue = self.currentValues[-1]
@@ -91,21 +94,21 @@ class ScalerIOC(PVGroup):
                     await self.debug.write(self.debugValues, timestamp=data.metadata.timestamp, status=data.metadata.status, 
                                         severity=data.metadata.severity)
                     
-                elif context.pv.name == "XF:31ID1-ES{PANDA:1}:TTLIN1:VAL": # ttlin
+                elif context.pv.name == f"{self.panda_prefix}TTLIN1:VAL": # ttlin
                     if data.data[0] == 1:
                         self.isCycleRunning = False
                         await self.cycleStatus.write("Idle", timestamp=data.metadata.timestamp, status=data.metadata.status, 
                                         severity=data.metadata.severity)
                     await self.triggerIn.write(data.data[0], timestamp=data.metadata.timestamp, status=data.metadata.status, 
                                         severity=data.metadata.severity)
-                elif context.pv.name == "XF:31ID1-ES{PANDA:1}:COUNTER1:OUT": # experiment counter
+                elif context.pv.name == f"{self.panda_prefix}COUNTER1:OUT": # experiment counter
                     if data.data[0] >= self.numCycles:
                         self.isExperimentRunning = False
                         await self.expStatus.write("Idle")
                         await self.counterReset.write(0)
                     await self.cycleCounter.write(data.data[0], timestamp=data.metadata.timestamp, status=data.metadata.status, 
                                         severity=data.metadata.severity)
-                elif context.pv.name == "XF:31ID1-ES{PANDA:1}:CLOCK1:PERIOD": # clock period
+                elif context.pv.name == f"{self.panda_prefix}CLOCK1:PERIOD": # clock period
                     await self.clockFreq.write(1.0 / data.data[0])
             elif event == "connection":
                 print(f"Client connection state changed: {data}")
@@ -145,6 +148,24 @@ class ScalerIOC(PVGroup):
             await self.cycleStatus.write("Idle")
             await self.expStatus.write("Idle")
 
-ioc = ScalerIOC(prefix="XF:31ID1-ES{{BIOLOGIC}}:")
-print(dict(ioc.pvdb))
-run(ioc.pvdb, startup_hook=ioc.__ainit__)
+
+import argparse
+
+def parse_args():
+    parser = argparse.ArgumentParser(description = "Helper caproto IOC to run the BioLogic potentiostat w/ a PandABox")
+    parser.add_argument("ioc_prefix", help = "PV Prefix for the helper IOC")
+    parser.add_argument("panda_prefix", help = "PV Prefix for the PandABox")
+    return parser.parse_args()
+
+
+def main():
+    args = vars(parse_args())
+
+    print(args)
+
+    ioc = ScalerIOC(f"{args['panda_prefix']}", prefix=f"{args['ioc_prefix']}")
+    print(dict(ioc.pvdb))
+    run(ioc.pvdb, startup_hook=ioc.__ainit__)
+
+if __name__ == "__main__":
+    main()
