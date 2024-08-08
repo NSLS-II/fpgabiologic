@@ -4,20 +4,34 @@ from caproto.server import PVGroup, pvproperty, run
 from caproto.asyncio.client import Context
 import caproto as ca
 
+# The value multiplied to the raw integer ADC output
+# This number should be updated to a more accurate value when possible
 PANDA_FMC_SCALE_VALUE = -0.000000005
 
-#XF:31ID1-ES{PANDA:1}:TTLOUT1:VAL
 class ScalerIOC(PVGroup):
+    """
+    IOC That primarily handles scaling the raw ADC outputs from the PandA IOC,
+    as well as handling the starting and counting of parts of the experiment
+    being run by EC-Labs
+    """
+    
+    # Keeps track of the current multiplier on the current value in order
+    # to keep it at a consistent value
     currentCurrentScale = 0.01
+    # Tracks scale of current as the power of 10
     currentCurrentScaleDebug = -2
+
+    # Experiment status
     isExperimentRunning = False
     isCycleRunning = False
     numCycles = 0
 
+    # Array values to enable using a graph in CS Studio
     eweValues = []
     currentValues = []
     debugValues = []
-    #this will allow for 100 minutes of data at 10Hz
+
+    #Array PVs for graph, used as a circular buffer. 
     ewe = pvproperty(value=0.0, name="EWE", doc="EWE values", max_length=60000)
     current = pvproperty(value=0.0, name="I", doc="current values", max_length=60000)
     lastEWE = pvproperty(value=0.0, name="EWE:LAST", doc="EWE values")
@@ -25,13 +39,17 @@ class ScalerIOC(PVGroup):
 
     debug = pvproperty(value=0, name="I:DEBUG", doc="current values debug", max_length=60000)
 
+    # Experimental status PVs
     cycleStatus = pvproperty(dtype=str, name="CYCLE:STATUS", doc="Current status of experiment", max_length=10)
     expStatus = pvproperty(dtype=str, name="EXP:STATUS", doc="Current status of experiment", max_length=10)
-
     cycleNum = pvproperty(value=0, name="EXP:NUM_CYCLES", doc="Number of cycles in experiment")
     cycleCounter = pvproperty(value=0, name="CYCLE:NUM", doc="Current cycle count")
+    
+    # Trigger PVs
     triggerIn = pvproperty(value=0, name="TRIG:IN", doc="Trigger In")
     triggerOut = pvproperty(value=0, name="TRIG:OUT", doc="Trigger Out")
+
+    # PVs to control data saving frequency
     clockFreq = pvproperty(value=0.0, name="FREQ", doc="Data aquisition frequency (Hz)")
     clockFreqSet = pvproperty(value=0.0, name="FREQ:SET", doc="Data aquisition frequency (Hz)")
 
