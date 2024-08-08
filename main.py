@@ -31,6 +31,8 @@ class ScalerIOC(PVGroup):
     currentValues = []
     debugValues = []
 
+    currentIndex = 0
+
     #Array PVs for graph, used as a circular buffer. 
     ewe = pvproperty(value=0.0, name="EWE", doc="EWE values", max_length=60000)
     current = pvproperty(value=0.0, name="I", doc="current values", max_length=60000)
@@ -81,17 +83,17 @@ class ScalerIOC(PVGroup):
             if event == "subscription":
                 if context.pv.name == f"{self.panda_prefix}CALC1:OUT": # ewe
 
-                    self.eweValues.append(data.data[0] * PANDA_FMC_SCALE_VALUE)
+                    self.eweValues[currentIndex] = data.data[0] * PANDA_FMC_SCALE_VALUE
                     await self.ewe.write(self.eweValues, timestamp=data.metadata.timestamp, status=data.metadata.status, 
                                         severity=data.metadata.severity)
                     await self.lastEWE.write(data.data[0] * PANDA_FMC_SCALE_VALUE, timestamp=data.metadata.timestamp, status=data.metadata.status, 
                                         severity=data.metadata.severity)
                 elif context.pv.name == f"{self.panda_prefix}CALC2:OUT": # I
                     scaledValue = data.data[0] * PANDA_FMC_SCALE_VALUE * self.currentCurrentScale
-                    if len(self.currentValues) > 1:
-                        lastValue = self.currentValues[-1]
+                    if currentIndex > 1:
+                        lastValue = self.currentValues[currentIndex - 1]
                         if abs(scaledValue) > 0.01 * self.currentCurrentScale and abs(lastValue) > 0.01 * self.currentCurrentScale \
-                              and abs(self.eweValues[-1]) > 0.01:
+                              and abs(self.eweValues[currentIndex]) > 0.01:
                             changeValue2 = abs(scaledValue / lastValue)
                             if changeValue2 > 5:
                                 self.currentCurrentScale /= 10
@@ -103,8 +105,8 @@ class ScalerIOC(PVGroup):
                                 self.currentCurrentScaleDebug += 1
                                 print(f"Current scale increased to {self.currentCurrentScaleDebug}")
                                 scaledValue = data.data[0] * PANDA_FMC_SCALE_VALUE * self.currentCurrentScale
-                    self.currentValues.append(scaledValue)
-                    self.debugValues.append(self.currentCurrentScaleDebug)
+                    self.currentValues[currentIndex] = scaledValue
+                    self.debugValues[currentIndex] = self.currentCurrentScaleDebug
                     await self.current.write(self.currentValues, timestamp=data.metadata.timestamp, status=data.metadata.status, 
                                         severity=data.metadata.severity)
                     await self.lastCurrent.write(scaledValue, timestamp=data.metadata.timestamp, status=data.metadata.status, 
